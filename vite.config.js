@@ -6,19 +6,25 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: 'autoUpdate',
+      includeAssets: ['icon-192.png','icon-512.png'],
       manifest: {
-        name: "Radha Jaap Reminder",
-        short_name: "Jaap",
-        start_url: "/",
-        display: "standalone",
-        background_color: "#ffffff",
-        theme_color: "#ff6600",
+        name: 'Radha Jaap Reminder',
+        short_name: 'RadhaJaap',
+        start_url: '/',
+        display: 'standalone',
+        background_color: '#ffffff',
+        theme_color: '#ff6600',
         icons: [
           {
-            src: "/icon.png",
-            sizes: "192x192",
-            type: "image/png"
+            src: '/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: '/icon-512.jpg',
+            sizes: '512x512',
+            type: 'image/jpg'
           }
         ]
       }
