@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import MantraInput from "../components/MantraInput";
 import {
   sendNotification,
@@ -7,7 +7,10 @@ import {
 import { minutesToMilliseconds, isWithinOfficeTime } from "../utils/timeUtils";
 
 function Home() {
+
   const [activeTab, setActiveTab] = useState("jaap");
+
+  const [installPrompt, setInstallPrompt] = useState(null);
 
   const [mantra, setMantra] = useState("Radha");
   const [interval, setIntervalTime] = useState(5);
@@ -23,21 +26,53 @@ function Home() {
 
   const intervalRef = useRef(null);
 
+  // PWA install detect
+  useEffect(() => {
+
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+
+    window.addEventListener("beforeinstallprompt", handler);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+    };
+
+  }, []);
+
+  const installApp = async () => {
+
+    if (!installPrompt) {
+      alert("Install option not available yet");
+      return;
+    }
+
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+
+  };
+
   const startReminder = async () => {
+
     await requestNotificationPermission();
 
     if (intervalRef.current) clearInterval(intervalRef.current);
 
     intervalRef.current = setInterval(() => {
+
       if (isWithinOfficeTime(startTime, endTime)) {
         sendNotification(mantra);
       }
+
     }, minutesToMilliseconds(interval));
 
     setRunning(true);
   };
 
   const stopReminder = () => {
+
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -47,7 +82,9 @@ function Home() {
   };
 
   const increaseCount = () => {
+
     setCount((prev) => {
+
       const newCount = prev + 1;
 
       if (newCount === 108) {
@@ -58,7 +95,9 @@ function Home() {
 
       localStorage.setItem("jaapCount", newCount);
       return newCount;
+
     });
+
   };
 
   return (
@@ -71,7 +110,8 @@ function Home() {
         justifyContent: "space-between",
       }}
     >
-      {/* Top Header */}
+
+      {/* Header */}
 
       <div
         style={{
@@ -86,16 +126,37 @@ function Home() {
         🙏 Radha App
       </div>
 
+      {/* Install Button */}
+
+      {installPrompt && (
+        <div style={{padding:10}}>
+          <button
+            onClick={installApp}
+            style={{
+              width: "100%",
+              padding: 12,
+              background: "#ff6600",
+              color: "white",
+              border: "none",
+              borderRadius: 10,
+              fontWeight: "bold"
+            }}
+          >
+            📲 Install Radha App
+          </button>
+        </div>
+      )}
+
       {/* Content */}
 
       <div style={{ padding: 20, flex: 1 }}>
+
         {activeTab === "jaap" && (
           <div style={{ textAlign: "center" }}>
-            <h2 style={{ marginBottom: 5 }}>📿 Naam Jaap</h2>
+
+            <h2>📿 Naam Jaap</h2>
 
             <p style={{ color: "#777" }}>Goal: 108</p>
-
-            {/* Counter */}
 
             <div
               style={{
@@ -107,8 +168,6 @@ function Home() {
             >
               {count}
             </div>
-
-            {/* Progress */}
 
             <div
               style={{
@@ -125,20 +184,14 @@ function Home() {
                   height: "100%",
                   background: "#ff6600",
                   borderRadius: 10,
-                  transition: "0.3s",
                 }}
               />
             </div>
 
-            {/* +1 Button */}
-
             <button
               onClick={() => {
                 increaseCount();
-
-                if (navigator.vibrate) {
-                  navigator.vibrate(50);
-                }
+                if (navigator.vibrate) navigator.vibrate(50);
               }}
               style={{
                 width: "100%",
@@ -155,12 +208,10 @@ function Home() {
               +1 JAAP
             </button>
 
-            {/* Reset */}
-
             <button
               onClick={() => {
                 setCount(0);
-                localStorage.setItem("jaapCount", 0);   
+                localStorage.setItem("jaapCount", 0);
               }}
               style={{
                 width: "100%",
@@ -172,19 +223,20 @@ function Home() {
             >
               Reset Counter
             </button>
+
           </div>
         )}
 
         {activeTab === "reminder" && (
           <div>
+
             <p>Status: {running ? "🟢 Running" : "🔴 Stopped"}</p>
 
             <label>Mantra</label>
 
             <MantraInput mantra={mantra} setMantra={setMantra} />
 
-            <br />
-            <br />
+            <br /><br />
 
             <label>Reminder Interval</label>
 
@@ -195,8 +247,7 @@ function Home() {
               style={{ width: "100%", padding: 10 }}
             />
 
-            <br />
-            <br />
+            <br /><br />
 
             <label>Start Time</label>
 
@@ -207,8 +258,7 @@ function Home() {
               style={{ width: "100%", padding: 10 }}
             />
 
-            <br />
-            <br />
+            <br /><br />
 
             <label>End Time</label>
 
@@ -219,8 +269,7 @@ function Home() {
               style={{ width: "100%", padding: 10 }}
             />
 
-            <br />
-            <br />
+            <br /><br />
 
             <button
               onClick={startReminder}
@@ -236,8 +285,7 @@ function Home() {
               Start Reminder
             </button>
 
-            <br />
-            <br />
+            <br /><br />
 
             <button
               onClick={stopReminder}
@@ -252,16 +300,17 @@ function Home() {
             >
               Stop
             </button>
+
           </div>
         )}
 
         {activeTab === "darshan" && (
           <div style={{ textAlign: "center" }}>
             <h2>🛕 Live Darshan</h2>
-
             <p>Coming Soon</p>
           </div>
         )}
+
       </div>
 
       {/* Bottom Navigation */}
@@ -309,7 +358,9 @@ function Home() {
           🛕 Darshan
         </button>
       </div>
+
     </div>
   );
 }
+
 export default Home;
